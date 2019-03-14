@@ -18,7 +18,7 @@ var session = require('express-session');
 app.use(session({ secret: 'happy jungle', 
                   resave: false, 
                   saveUninitialized: false, 
-                  cookie: { maxAge: 60000 }}))
+                  cookie: { maxAge: 600000 }}))
 
 app.all('/', whoIsLoggedIn);                  
 app.all('/register', register);
@@ -39,20 +39,14 @@ function startHandler()
 
 function listSongs(req, res)
 {
-  if (req.session.user == undefined)
-  {
-    writeResult(req, res, {'error' : "Please login."});
-    return;
-  }
-
-  var con = mysql.createConnection(conInfo);
+ var con = mysql.createConnection(conInfo);
   con.connect(function(err) 
   {
     if (err) 
       writeResult(req, res, {'error' : err});
     else
     {
-      con.query("SELECT * FROM SONG WHERE USER_ID = ? ORDER BY SONG_NAME", [req.session.user.result.id], function (err, result, fields) 
+      con.query("SELECT * FROM SONG ORDER BY SONG_NAME", function (err, result, fields) 
       {
         if (err) 
           writeResult(req, res, {'error' : err});
@@ -62,7 +56,6 @@ function listSongs(req, res)
     }
   });
 }
-
 function addSong(req, res)
 {
   if (req.session.user == undefined)
@@ -82,7 +75,7 @@ function addSong(req, res)
         writeResult(req, res, {'error' : err});
       else
       {
-        con.query('INSERT INTO SONG (SONG_NAME, USER_ID) VALUES (?, ?)', [req.query.song, req.session.user.result.id], function (err, result, fields) 
+        con.query('INSERT INTO SONG (SONG_NAME, USER_ID, SONG_RATING) VALUES (?, ?, ?)', [req.query.song, req.session.user.result.id, req.query.rating], function (err, result, fields) 
         {
           if (err) 
             writeResult(req, res, {'error' : err});
